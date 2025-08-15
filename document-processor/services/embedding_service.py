@@ -152,7 +152,230 @@ class EmbeddingService:
                 raise
         
         logger.info(f"Embedding creation completed for document {document_id}: {embeddings_created} total embeddings")
+        
+        # CRITICAL: Sync document metadata to Supabase documents_metadata table
+        try:
+            await self._sync_document_metadata_to_supabase(document_id, document_name, len(chunks), len(text))
+            logger.info(f"Successfully synced metadata for document {document_id} to Supabase")
+        except Exception as sync_error:
+            logger.error(f"Failed to sync metadata for document {document_id}: {str(sync_error)}")
+            # Don't fail the entire process if metadata sync fails
+        
         return embeddings_created
+    
+    async def _sync_document_metadata_to_supabase(self, document_id: str, document_name: str, total_chunks: int, total_characters: int):
+        """Sync document metadata to Supabase documents_metadata table"""
+        try:
+            # Get additional metadata from SQLite if available
+            file_type = 'pdf'  # Default
+            file_size = 0
+            original_filename = document_name
+            
+            # Try to get more accurate metadata from the document_id
+            try:
+                # Extract file extension from document_name if possible
+                if '.' in document_name:
+                    file_type = document_name.split('.')[-1].lower()
+                
+                # If we have access to the original file, get its size
+                from pathlib import Path
+                upload_dir = Path('storage/uploads')
+                possible_file = upload_dir / f"{document_id}.{file_type}"
+                if possible_file.exists():
+                    file_size = possible_file.stat().st_size
+                    original_filename = document_name
+                
+            except Exception as meta_error:
+                logger.warning(f"Could not get extended metadata for {document_id}: {str(meta_error)}")
+            
+            # Prepare metadata for Supabase using robust approach
+            logger.info(f"🔄 UPLOAD SYNC: Preparing metadata record for {document_id}")
+            
+            # Use minimal essential columns first to avoid schema issues
+            metadata_record = {
+                'document_id': document_id,
+                'original_filename': original_filename,
+                'processing_status': 'completed'
+            }
+            
+            # Add optional columns safely
+            try:
+                metadata_record.update({
+                    'file_type': file_type,
+                    'total_chunks': total_chunks,
+                    'total_characters': total_characters
+                })
+                if file_size > 0:
+                    metadata_record['file_size'] = file_size
+            except Exception as optional_error:
+                logger.warning(f"🔄 UPLOAD SYNC: Optional columns failed: {str(optional_error)}")
+            
+            logger.info(f"🔄 UPLOAD SYNC: Metadata record prepared: {metadata_record}")
+            
+            # Check if metadata already exists
+            existing_check = self.supabase.table('documents_metadata')\
+                .select('document_id')\
+                .eq('document_id', document_id)\
+                .execute()
+            
+            if existing_check.data:
+                # Update existing record with robust error handling
+                logger.info(f"🔄 UPLOAD SYNC: Updating existing metadata for document {document_id}")
+                try:
+                    update_result = self.supabase.table('documents_metadata')\
+                        .update(metadata_record)\
+                        .eq('document_id', document_id)\
+                        .execute()
+                    
+                    if update_result.data:
+                        logger.info(f"✅ UPLOAD SYNC: Successfully updated metadata for {document_id}")
+                    else:
+                        logger.error(f"❌ UPLOAD SYNC: Update returned no data for {document_id}")
+                        raise Exception("Update operation returned no data")
+                        
+                except Exception as update_error:
+                    logger.error(f"❌ UPLOAD SYNC: Update failed for {document_id}: {str(update_error)}")
+                    # Try with minimal record
+                    try:
+                        minimal_update = {
+                            'processing_status': 'completed',
+                            'total_chunks': total_chunks
+                        }
+                        retry_result = self.supabase.table('documents_metadata')\
+                            .update(minimal_update)\
+                            .eq('document_id', document_id)\
+                            .execute()
+                        
+                        if retry_result.data:
+                            logger.info(f"✅ UPLOAD SYNC: Updated with minimal record for {document_id}")
+                        else:
+                            raise Exception("Even minimal update failed")
+                            
+                    except Exception as retry_error:
+                        logger.error(f"❌ UPLOAD SYNC: Final update retry failed for {document_id}: {str(retry_error)}")
+                        raise
+                    
+            else:
+                # Insert new record with robust error handling
+                logger.info(f"🔄 UPLOAD SYNC: Inserting new metadata for document {document_id}")
+                try:
+                    insert_result = self.supabase.table('documents_metadata')\
+                        .insert(metadata_record)\
+                        .execute()
+                    
+                    if insert_result.data:
+                        logger.info(f"✅ UPLOAD SYNC: Successfully inserted metadata for {document_id}")
+                    else:
+                        logger.error(f"❌ UPLOAD SYNC: Insert returned no data for {document_id}")
+                        raise Exception("Insert operation returned no data")
+                        
+                except Exception as insert_error:
+                    logger.error(f"❌ UPLOAD SYNC: Insert failed for {document_id}: {str(insert_error)}")
+                    # Try with minimal record
+                    try:
+                        minimal_record = {
+                            'document_id': document_id,
+                            'original_filename': original_filename,
+                            'processing_status': 'completed'
+                        }
+                        logger.info(f"🔄 UPLOAD SYNC: Retrying with minimal record for {document_id}")
+                        
+                        retry_result = self.supabase.table('documents_metadata')\
+                            .insert(minimal_record)\
+                            .execute()
+                        
+                        if retry_result.data:
+                            logger.info(f"✅ UPLOAD SYNC: Inserted with minimal record for {document_id}")
+                        else:
+                            raise Exception("Even minimal insert failed")
+                            
+                    except Exception as retry_error:
+                        logger.error(f"❌ UPLOAD SYNC: Final insert retry failed for {document_id}: {str(retry_error)}")
+                        raise
+            
+            logger.info(f"✅ UPLOAD SYNC: Successfully synced metadata for document {document_id}: {total_chunks} chunks, {total_characters} characters")
+            
+        except Exception as e:
+            logger.error(f"Error syncing metadata to Supabase for document {document_id}: {str(e)}")
+            raise
+    
+    def validate_document_exists(self, document_id: str) -> Dict[str, Any]:
+        """Validate that a document exists and has embeddings available"""
+        try:
+            logger.info(f"🔍 Validating document existence: {document_id}")
+            
+            validation_result = {
+                'exists': False,
+                'has_embeddings': False,
+                'has_metadata': False,
+                'embedding_count': 0,
+                'document_name': None,
+                'file_type': None,
+                'errors': []
+            }
+            
+            # Check if document has embeddings
+            try:
+                embeddings_check = self.supabase.table('document_embeddings')\
+                    .select('document_id, document_name, chunk_id')\
+                    .eq('document_id', document_id)\
+                    .execute()
+                
+                if embeddings_check.data:
+                    validation_result['exists'] = True
+                    validation_result['has_embeddings'] = True
+                    validation_result['embedding_count'] = len(embeddings_check.data)
+                    validation_result['document_name'] = embeddings_check.data[0].get('document_name')
+                    logger.info(f"✅ Document {document_id} has {len(embeddings_check.data)} embeddings")
+                else:
+                    validation_result['errors'].append("No embeddings found for this document")
+                    logger.warning(f"⚠️ Document {document_id} has no embeddings")
+                    
+            except Exception as embed_error:
+                validation_result['errors'].append(f"Error checking embeddings: {str(embed_error)}")
+                logger.error(f"❌ Error checking embeddings for {document_id}: {str(embed_error)}")
+            
+            # Check if document has metadata
+            try:
+                metadata_check = self.supabase.table('documents_metadata')\
+                    .select('document_id, original_filename, file_type, processing_status')\
+                    .eq('document_id', document_id)\
+                    .execute()
+                
+                if metadata_check.data:
+                    metadata = metadata_check.data[0]
+                    validation_result['has_metadata'] = True
+                    validation_result['file_type'] = metadata.get('file_type')
+                    if not validation_result['document_name']:
+                        validation_result['document_name'] = metadata.get('original_filename')
+                    logger.info(f"✅ Document {document_id} has metadata: {metadata.get('original_filename')}")
+                else:
+                    validation_result['errors'].append("No metadata found for this document")
+                    logger.warning(f"⚠️ Document {document_id} has no metadata")
+                    
+            except Exception as meta_error:
+                validation_result['errors'].append(f"Error checking metadata: {str(meta_error)}")
+                logger.error(f"❌ Error checking metadata for {document_id}: {str(meta_error)}")
+            
+            # Overall validation status
+            if validation_result['has_embeddings'] and validation_result['has_metadata']:
+                logger.info(f"✅ Document {document_id} fully validated")
+            else:
+                logger.warning(f"⚠️ Document {document_id} validation incomplete: {validation_result['errors']}")
+            
+            return validation_result
+            
+        except Exception as e:
+            logger.error(f"❌ Error validating document {document_id}: {str(e)}")
+            return {
+                'exists': False,
+                'has_embeddings': False,
+                'has_metadata': False,
+                'embedding_count': 0,
+                'document_name': None,
+                'file_type': None,
+                'errors': [f"Validation error: {str(e)}"]
+            }
     
     def get_embedding_stats(self):
         """Get statistics about stored embeddings by counting actual embeddings"""
@@ -202,7 +425,7 @@ class EmbeddingService:
                 "error": str(e)
             }
     
-    def search_similar_documents(self, query: str, limit: int = 5, similarity_threshold: float = 0.5):
+    def search_similar_documents(self, query: str, limit: int = 8, similarity_threshold: float = 0.2):
         """Search for similar documents using embeddings with proper result format"""
         try:
             
@@ -357,37 +580,304 @@ class EmbeddingService:
     def get_available_document_names(self):
         """Get list of unique documents with document_id and names for dropdown"""
         try:
-            # Query document_embeddings table for unique document_id and document_name pairs
-            result = self.supabase.table('document_embeddings')\
-                .select('document_id, document_name')\
-                .execute()
+            logger.info("📋 BACKEND: Getting available documents from documents_metadata table...")
             
-            if result.data:
-                # Group by document_id to get unique documents
-                document_map = {}
-                for row in result.data:
-                    doc_id = row.get('document_id')
-                    doc_name = row.get('document_name')
+            # First check if documents_metadata table exists and is accessible
+            try:
+                # Try a simple existence check first
+                existence_check = self.supabase.table('documents_metadata')\
+                    .select('document_id')\
+                    .limit(1)\
+                    .execute()
+                logger.info(f"📋 BACKEND: Metadata table accessibility check: {len(existence_check.data) if existence_check.data else 0} records found")
+            except Exception as existence_error:
+                logger.warning(f"📋 BACKEND: Metadata table not accessible: {str(existence_error)}")
+                logger.info("📋 BACKEND: Falling back to embeddings table immediately")
+                raise Exception("Metadata table not accessible")
+            
+            # Try to get documents from documents_metadata table with minimal columns
+            try:
+                # Use only essential columns that should exist
+                metadata_result = self.supabase.table('documents_metadata')\
+                    .select('document_id, original_filename')\
+                    .execute()
+                
+                # If that works, try to get additional columns
+                if metadata_result.data:
+                    try:
+                        metadata_result = self.supabase.table('documents_metadata')\
+                            .select('document_id, original_filename, file_type, processing_status, total_chunks')\
+                            .eq('processing_status', 'completed')\
+                            .execute()
+                    except Exception as extended_error:
+                        logger.warning(f"📋 BACKEND: Extended metadata query failed, using basic: {str(extended_error)}")
+                        # Keep the basic result
+                
+                logger.info(f"📋 BACKEND: Metadata query returned {len(metadata_result.data) if metadata_result.data else 0} rows")
+                
+                if metadata_result.data:
+                    documents = []
+                    logger.info(f"📋 BACKEND: Processing metadata table results:")
+                    for i, row in enumerate(metadata_result.data):
+                        doc_id = row.get('document_id')
+                        filename = row.get('original_filename')
+                        chunks = row.get('total_chunks', 0)
+                        
+                        logger.info(f"   Metadata {i}: id='{doc_id}', name='{filename}', chunks={chunks}")
+                        
+                        if doc_id and filename and chunks > 0:
+                            document_entry = {
+                                'id': doc_id,
+                                'name': filename,
+                                'file_type': row.get('file_type', 'unknown'),
+                                'total_chunks': chunks
+                            }
+                            documents.append(document_entry)
+                            logger.info(f"   ✅ Added document: {document_entry}")
+                        else:
+                            logger.warning(f"   ❌ Skipped document: missing required fields")
                     
-                    if doc_id and doc_name and doc_name.strip():
-                        document_map[doc_id] = doc_name
+                    documents.sort(key=lambda x: x['name'])
+                    logger.info(f"📋 BACKEND: Found {len(documents)} valid documents from metadata table")
+                    logger.info(f"📋 BACKEND: Final metadata results: {documents}")
+                    return documents
+                else:
+                    logger.warning(f"📋 BACKEND: No data returned from metadata table")
+                    
+                    # AUTO-SYNC: If metadata table is empty, try to sync from embeddings
+                    logger.info(f"🔄 AUTO-SYNC: Attempting to sync existing documents...")
+                    try:
+                        synced_count = self.sync_existing_documents_to_metadata()
+                        if synced_count > 0:
+                            logger.info(f"✅ AUTO-SYNC: Synced {synced_count} documents, retrying metadata query...")
+                            # Retry metadata query after sync
+                            retry_result = self.supabase.table('documents_metadata')\
+                                .select('document_id, original_filename, file_type, processing_status, total_chunks')\
+                                .eq('processing_status', 'completed')\
+                                .execute()
+                            
+                            if retry_result.data:
+                                documents = []
+                                for row in retry_result.data:
+                                    doc_id = row.get('document_id')
+                                    filename = row.get('original_filename')
+                                    chunks = row.get('total_chunks', 0)
+                                    
+                                    if doc_id and filename and chunks > 0:
+                                        documents.append({
+                                            'id': doc_id,
+                                            'name': filename,
+                                            'file_type': row.get('file_type', 'unknown'),
+                                            'total_chunks': chunks
+                                        })
+                                
+                                documents.sort(key=lambda x: x['name'])
+                                logger.info(f"✅ AUTO-SYNC: Successfully retrieved {len(documents)} documents after sync")
+                                return documents
+                        else:
+                            logger.warning(f"⚠️ AUTO-SYNC: No documents were synced - falling back to embeddings")
+                    except Exception as sync_error:
+                        logger.error(f"❌ AUTO-SYNC: Failed to sync documents: {str(sync_error)} - falling back to embeddings")
                 
-                # Convert to list and sort by document name for better UX
-                documents = [{'id': doc_id, 'name': doc_name} for doc_id, doc_name in document_map.items()]
-                documents.sort(key=lambda x: x['name'])
+            except Exception as metadata_error:
+                logger.warning(f"📋 BACKEND: Could not get documents from metadata table: {str(metadata_error)}")
+            
+            # CRITICAL FALLBACK: Always show documents from embeddings table
+            logger.info("📋 BACKEND: CRITICAL FALLBACK - Getting ALL documents from embeddings table...")
+            try:
+                result = self.supabase.table('document_embeddings')\
+                    .select('document_id, document_name')\
+                    .execute()
                 
-                logger.info(f"Found {len(documents)} unique documents with IDs")
-                return documents
-            else:
-                logger.warning("No document names found in embeddings table")
-                return []
+                logger.info(f"📋 BACKEND: Embeddings fallback query returned {len(result.data) if result.data else 0} rows")
+                
+                if result.data:
+                    # Group by document_id to get unique documents
+                    document_map = {}
+                    logger.info(f"📋 BACKEND: Processing ALL embeddings table results:")
+                    
+                    for i, row in enumerate(result.data):
+                        doc_id = row.get('document_id')
+                        doc_name = row.get('document_name')
+                        
+                        if i < 10:  # Log first 10 for debugging
+                            logger.info(f"   Embedding {i}: id='{doc_id}', name='{doc_name}'")
+                        
+                        if doc_id and doc_name and doc_name.strip():
+                            document_map[doc_id] = doc_name
+                    
+                    # Convert to list and sort by document name for better UX
+                    documents = [{'id': doc_id, 'name': doc_name} for doc_id, doc_name in document_map.items()]
+                    documents.sort(key=lambda x: x['name'])
+                    
+                    logger.info(f"📋 BACKEND: ✅ FALLBACK SUCCESS - Found {len(documents)} unique documents from embeddings table")
+                    logger.info(f"📋 BACKEND: Document list: {[doc['name'] for doc in documents]}")
+                    
+                    if documents:
+                        return documents
+                    else:
+                        logger.warning("📋 BACKEND: No valid documents after processing embeddings")
+                else:
+                    logger.warning("📋 BACKEND: No data returned from embeddings table")
+                    
+            except Exception as embeddings_error:
+                logger.error(f"📋 BACKEND: ❌ Even embeddings fallback failed: {str(embeddings_error)}")
+            
+            # Final fallback - return empty list with clear warning
+            logger.error("📋 BACKEND: ❌ ALL FALLBACKS FAILED - No documents available")
+            return []
                 
         except Exception as e:
             logger.error(f"Error getting available document names: {str(e)}")
             return []
     
-    def search_similar_documents_by_name(self, query: str, limit: int = 5, 
-                                       similarity_threshold: float = 0.5, 
+    def sync_existing_documents_to_metadata(self):
+        """Sync existing documents from embeddings table to metadata table"""
+        try:
+            logger.info("🔄 SYNC: Starting sync of existing documents to metadata table...")
+            
+            # First ensure the metadata table exists
+            if not self.ensure_metadata_table_exists():
+                logger.error("❌ SYNC: Cannot proceed - metadata table not accessible")
+                return 0
+            
+            # Get all unique documents from embeddings table
+            embeddings_result = self.supabase.table('document_embeddings')\
+                .select('document_id, document_name')\
+                .execute()
+            
+            if not embeddings_result.data:
+                logger.warning("🔄 SYNC: No documents found in embeddings table")
+                return 0
+            
+            # Group by document_id to get unique documents
+            unique_docs = {}
+            for row in embeddings_result.data:
+                doc_id = row.get('document_id')
+                doc_name = row.get('document_name')
+                if doc_id and doc_name:
+                    unique_docs[doc_id] = doc_name
+            
+            logger.info(f"🔄 SYNC: Found {len(unique_docs)} unique documents in embeddings table")
+            
+            # Check which documents already exist in metadata table
+            existing_metadata = self.supabase.table('documents_metadata')\
+                .select('document_id')\
+                .execute()
+            
+            existing_ids = set(row['document_id'] for row in existing_metadata.data) if existing_metadata.data else set()
+            logger.info(f"🔄 SYNC: Found {len(existing_ids)} existing documents in metadata table")
+            
+            # Sync missing documents
+            synced_count = 0
+            for doc_id, doc_name in unique_docs.items():
+                if doc_id not in existing_ids:
+                    try:
+                        # Count chunks for this document
+                        chunks_result = self.supabase.table('document_embeddings')\
+                            .select('chunk_text')\
+                            .eq('document_id', doc_id)\
+                            .execute()
+                        
+                        total_chunks = len(chunks_result.data) if chunks_result.data else 0
+                        total_characters = sum(len(chunk['chunk_text']) for chunk in chunks_result.data) if chunks_result.data else 0
+                        
+                        # Extract file type from document name
+                        file_type = 'pdf'  # Default
+                        if '.' in doc_name:
+                            file_type = doc_name.split('.')[-1].lower()
+                        
+                        # Create metadata record with only essential columns
+                        # Using minimal approach to avoid schema issues
+                        metadata_record = {
+                            'document_id': doc_id,
+                            'original_filename': doc_name,
+                            'file_type': file_type,
+                            'total_chunks': total_chunks,
+                            'total_characters': total_characters,
+                            'processing_status': 'completed'
+                        }
+                        
+                        # Add optional columns only if they're likely to exist
+                        try:
+                            metadata_record['file_size'] = 0  # Unknown for existing documents
+                        except:
+                            pass
+                        
+                        # Insert into metadata table with robust error handling
+                        try:
+                            insert_result = self.supabase.table('documents_metadata')\
+                                .insert(metadata_record)\
+                                .execute()
+                            
+                            if insert_result.data:
+                                synced_count += 1
+                                logger.info(f"✅ SYNC: Synced document {doc_id} ({doc_name}) - {total_chunks} chunks")
+                            else:
+                                logger.error(f"❌ SYNC: Failed to sync document {doc_id} - No data returned")
+                                logger.error(f"❌ SYNC: Insert response: {insert_result}")
+                                
+                        except Exception as insert_error:
+                            logger.error(f"❌ SYNC: Insert failed for document {doc_id}: {str(insert_error)}")
+                            
+                            # Try with even more minimal record
+                            try:
+                                minimal_record = {
+                                    'document_id': doc_id,
+                                    'original_filename': doc_name,
+                                    'processing_status': 'completed'
+                                }
+                                logger.info(f"🔄 SYNC: Retrying with minimal record for {doc_id}")
+                                
+                                retry_result = self.supabase.table('documents_metadata')\
+                                    .insert(minimal_record)\
+                                    .execute()
+                                
+                                if retry_result.data:
+                                    synced_count += 1
+                                    logger.info(f"✅ SYNC: Synced document {doc_id} with minimal record")
+                                else:
+                                    logger.error(f"❌ SYNC: Even minimal sync failed for {doc_id}")
+                                    
+                            except Exception as retry_error:
+                                logger.error(f"❌ SYNC: Final retry failed for {doc_id}: {str(retry_error)}")
+                                continue
+                            
+                    except Exception as sync_error:
+                        logger.error(f"❌ SYNC: General error syncing document {doc_id}: {str(sync_error)}")
+                        continue
+                else:
+                    logger.info(f"⏭️  SYNC: Document {doc_id} already exists in metadata table")
+            
+            logger.info(f"🔄 SYNC: Completed! Synced {synced_count} new documents to metadata table")
+            return synced_count
+            
+        except Exception as e:
+            logger.error(f"❌ SYNC: Error syncing existing documents: {str(e)}")
+            return 0
+    
+    def ensure_metadata_table_exists(self):
+        """Ensure the documents_metadata table exists and is properly configured"""
+        try:
+            logger.info("🔧 METADATA TABLE: Checking if documents_metadata table exists...")
+            
+            # Try to access the table
+            test_result = self.supabase.table('documents_metadata')\
+                .select('document_id')\
+                .limit(1)\
+                .execute()
+            
+            logger.info("✅ METADATA TABLE: Table exists and is accessible")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ METADATA TABLE: Table not accessible: {str(e)}")
+            logger.warning("⚠️ METADATA TABLE: You may need to run the schema creation script in Supabase")
+            logger.warning("⚠️ METADATA TABLE: Check if the documents_metadata table was created properly")
+            return False
+    
+    def search_similar_documents_by_name(self, query: str, limit: int = 8, 
+                                       similarity_threshold: float = 0.2, 
                                        document_name: str = None):
         """Search similar documents with optional document name filtering"""
         try:
@@ -579,7 +1069,7 @@ class EmbeddingService:
             return []
     
     def search_similar_documents_by_id(self, query: str, document_id: str, 
-                                     limit: int = 5, similarity_threshold: float = 0.5):
+                                     limit: int = 8, similarity_threshold: float = 0.2):
         """Search similar documents filtered by exact document_id match"""
         try:
             logger.info(f"=== DOCUMENT_ID SEARCH START ===")
@@ -779,8 +1269,8 @@ class EmbeddingService:
                 'message': 'Multimodal embedding creation failed'
             }
     
-    async def search_multimodal_context(self, query: str, max_chunks: int = 8, 
-                                       include_images: bool = True, similarity_threshold: float = 0.3,
+    async def search_multimodal_context(self, query: str, max_chunks: int = 10, 
+                                       include_images: bool = True, similarity_threshold: float = 0.2,
                                        document_id: str = None) -> Dict:
         """
         Search both text and image content for multimodal context
@@ -1262,4 +1752,309 @@ class EmbeddingService:
                     'critical_error': str(e),
                     'error_type': type(e).__name__
                 }
+            }
+    
+    async def assign_random_uuids_directly(self):
+        """
+        Directly assign random UUIDs to the specified documents in both Supabase tables.
+        This is a simple, direct approach to give both documents new random UUIDs.
+        """
+        try:
+            logger.info("🎲 DIRECT UUID ASSIGNMENT: Starting direct UUID assignment")
+            
+            # Target documents as specified by user
+            target_documents = [
+                "01 KCAU Prefab Lecture Rooms - Outline Proposal 12032025.pdf",
+                "Civil Drawing.pdf"
+            ]
+            
+            logger.info(f"🎯 TARGET DOCUMENTS: {target_documents}")
+            
+            # Step 1: Find documents in embeddings table
+            logger.info("📋 STEP 1: Finding documents in document_embeddings table...")
+            embeddings_result = self.supabase.table('document_embeddings')\
+                .select('document_id, document_name')\
+                .execute()
+            
+            if not embeddings_result.data:
+                logger.error("❌ No documents found in document_embeddings table")
+                return {
+                    'success': False,
+                    'error': 'No documents found in embeddings table'
+                }
+            
+            # Group by document_id to find unique documents
+            found_documents = {}
+            for row in embeddings_result.data:
+                doc_id = row.get('document_id')
+                doc_name = row.get('document_name')
+                if doc_id and doc_name and doc_name in target_documents:
+                    found_documents[doc_id] = doc_name
+            
+            logger.info(f"📋 FOUND: {len(found_documents)} target documents in embeddings table")
+            for doc_id, doc_name in found_documents.items():
+                logger.info(f"   ✅ '{doc_name}' (Current ID: {doc_id})")
+            
+            if not found_documents:
+                logger.error("❌ No target documents found in embeddings table")
+                return {
+                    'success': False,
+                    'error': 'Target documents not found',
+                    'target_documents': target_documents
+                }
+            
+            # Step 2: Generate new UUIDs and update both tables
+            results = {}
+            
+            for old_doc_id, doc_name in found_documents.items():
+                logger.info(f"🎲 PROCESSING: '{doc_name}'")
+                
+                # Generate new random UUID
+                new_uuid = str(uuid.uuid4())
+                logger.info(f"   Generated new UUID: {new_uuid}")
+                
+                try:
+                    # Update document_embeddings table
+                    logger.info(f"   📝 Updating document_embeddings table...")
+                    embeddings_update = self.supabase.table('document_embeddings')\
+                        .update({'document_id': new_uuid})\
+                        .eq('document_id', old_doc_id)\
+                        .execute()
+                    
+                    embeddings_updated = len(embeddings_update.data) if embeddings_update.data else 0
+                    logger.info(f"   ✅ Updated {embeddings_updated} records in document_embeddings")
+                    
+                    # Update documents_metadata table (if exists)
+                    metadata_updated = 0
+                    try:
+                        logger.info(f"   📝 Updating documents_metadata table...")
+                        metadata_update = self.supabase.table('documents_metadata')\
+                            .update({'document_id': new_uuid})\
+                            .eq('document_id', old_doc_id)\
+                            .execute()
+                        
+                        metadata_updated = len(metadata_update.data) if metadata_update.data else 0
+                        logger.info(f"   ✅ Updated {metadata_updated} records in documents_metadata")
+                        
+                    except Exception as metadata_error:
+                        logger.warning(f"   ⚠️ Could not update metadata table: {str(metadata_error)}")
+                    
+                    # Store results
+                    results[doc_name] = {
+                        'old_id': old_doc_id,
+                        'new_uuid': new_uuid,
+                        'embeddings_updated': embeddings_updated,
+                        'metadata_updated': metadata_updated,
+                        'success': True
+                    }
+                    
+                    logger.info(f"✅ COMPLETED: '{doc_name}' - Old: {old_doc_id} → New: {new_uuid}")
+                    
+                except Exception as doc_error:
+                    logger.error(f"❌ FAILED: Error updating '{doc_name}': {str(doc_error)}")
+                    results[doc_name] = {
+                        'old_id': old_doc_id,
+                        'new_uuid': new_uuid,
+                        'embeddings_updated': 0,
+                        'metadata_updated': 0,
+                        'success': False,
+                        'error': str(doc_error)
+                    }
+            
+            # Summary
+            successful_docs = [doc for doc, result in results.items() if result['success']]
+            failed_docs = [doc for doc, result in results.items() if not result['success']]
+            
+            total_embeddings_updated = sum(result['embeddings_updated'] for result in results.values())
+            total_metadata_updated = sum(result['metadata_updated'] for result in results.values())
+            
+            logger.info("🎲 DIRECT UUID ASSIGNMENT COMPLETE")
+            logger.info(f"   Successful documents: {len(successful_docs)}")
+            logger.info(f"   Failed documents: {len(failed_docs)}")
+            logger.info(f"   Total embeddings updated: {total_embeddings_updated}")
+            logger.info(f"   Total metadata updated: {total_metadata_updated}")
+            
+            if successful_docs:
+                logger.info("✅ SUCCESSFUL UPDATES:")
+                for doc in successful_docs:
+                    result = results[doc]
+                    logger.info(f"   {doc}: {result['old_id']} → {result['new_uuid']}")
+            
+            if failed_docs:
+                logger.warning("❌ FAILED UPDATES:")
+                for doc in failed_docs:
+                    result = results[doc]
+                    logger.warning(f"   {doc}: {result.get('error', 'Unknown error')}")
+            
+            return {
+                'success': len(successful_docs) > 0,
+                'documents_processed': len(results),
+                'successful_documents': len(successful_docs),
+                'failed_documents': len(failed_docs),
+                'total_embeddings_updated': total_embeddings_updated,
+                'total_metadata_updated': total_metadata_updated,
+                'results': results,
+                'successful_docs': successful_docs,
+                'failed_docs': failed_docs,
+                'message': f'UUID assignment complete: {len(successful_docs)} successful, {len(failed_docs)} failed'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ DIRECT UUID ASSIGNMENT failed: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Direct UUID assignment failed: {str(e)}'
+            }
+
+    async def regenerate_document_uuids(self):
+        """
+        Regenerate UUIDs for existing documents in both document_embeddings and documents_metadata tables.
+        This method implements Phase 1 of the UUID regeneration plan.
+        """
+        try:
+            logger.info("🔄 UUID REGENERATION: Starting Phase 1 - Document discovery and UUID generation")
+            
+            # Target documents as specified in the user request
+            target_documents = [
+                "01 KCAU Prefab Lecture Rooms - Outline Proposal 12032025.pdf",
+                "Civil Drawing.pdf"
+            ]
+            
+            logger.info(f"🎯 TARGET DOCUMENTS: {target_documents}")
+            
+            # Discover existing documents in document_embeddings table
+            logger.info("📋 DISCOVERY: Searching for documents in document_embeddings table...")
+            embeddings_result = self.supabase.table('document_embeddings')\
+                .select('document_id, document_name')\
+                .execute()
+            
+            if not embeddings_result.data:
+                logger.error("❌ No documents found in document_embeddings table")
+                return {
+                    'success': False,
+                    'error': 'No documents found in embeddings table',
+                    'documents_processed': 0
+                }
+            
+            # Group by document_id to find unique documents
+            found_documents = {}
+            for row in embeddings_result.data:
+                doc_id = row.get('document_id')
+                doc_name = row.get('document_name')
+                if doc_id and doc_name:
+                    found_documents[doc_id] = doc_name
+            
+            logger.info(f"📋 DISCOVERY: Found {len(found_documents)} unique documents in embeddings table")
+            for doc_id, doc_name in found_documents.items():
+                logger.info(f"   Found: '{doc_name}' (ID: {doc_id})")
+            
+            # Match target documents with found documents
+            matched_documents = {}
+            uuid_mapping = {}
+            
+            for doc_id, doc_name in found_documents.items():
+                if doc_name in target_documents:
+                    # Generate new UUID for this document
+                    new_uuid = str(uuid.uuid4())
+                    matched_documents[doc_id] = {
+                        'old_id': doc_id,
+                        'new_uuid': new_uuid,
+                        'document_name': doc_name
+                    }
+                    uuid_mapping[doc_name] = {
+                        'old_id': doc_id,
+                        'new_uuid': new_uuid
+                    }
+                    logger.info(f"✅ MATCHED: '{doc_name}'")
+                    logger.info(f"   Old ID: {doc_id}")
+                    logger.info(f"   New UUID: {new_uuid}")
+            
+            if not matched_documents:
+                logger.warning("⚠️ No target documents found in embeddings table")
+                logger.info("📋 Available documents:")
+                for doc_name in found_documents.values():
+                    logger.info(f"   - {doc_name}")
+                return {
+                    'success': False,
+                    'error': 'No target documents found',
+                    'available_documents': list(found_documents.values()),
+                    'target_documents': target_documents
+                }
+            
+            # Check documents_metadata table
+            logger.info("📋 DISCOVERY: Checking documents_metadata table...")
+            try:
+                metadata_result = self.supabase.table('documents_metadata')\
+                    .select('document_id, original_filename')\
+                    .execute()
+                
+                metadata_documents = {}
+                if metadata_result.data:
+                    for row in metadata_result.data:
+                        doc_id = row.get('document_id')
+                        filename = row.get('original_filename')
+                        if doc_id and filename:
+                            metadata_documents[doc_id] = filename
+                    
+                    logger.info(f"📋 DISCOVERY: Found {len(metadata_documents)} documents in metadata table")
+                    for doc_id, filename in metadata_documents.items():
+                        logger.info(f"   Metadata: '{filename}' (ID: {doc_id})")
+                else:
+                    logger.warning("📋 DISCOVERY: No documents found in metadata table")
+                    
+            except Exception as metadata_error:
+                logger.warning(f"📋 DISCOVERY: Could not access metadata table: {str(metadata_error)}")
+                metadata_documents = {}
+            
+            # Log the UUID mapping plan
+            logger.info("🗺️ UUID MAPPING PLAN:")
+            for doc_name, mapping in uuid_mapping.items():
+                logger.info(f"   Document: {doc_name}")
+                logger.info(f"     Old ID: {mapping['old_id']}")
+                logger.info(f"     New UUID: {mapping['new_uuid']}")
+                
+                # Check if document exists in both tables
+                in_metadata = mapping['old_id'] in metadata_documents
+                logger.info(f"     In embeddings: ✅")
+                logger.info(f"     In metadata: {'✅' if in_metadata else '❌'}")
+            
+            # Count chunks for each document to be updated
+            chunk_counts = {}
+            for doc_id in matched_documents.keys():
+                chunks_result = self.supabase.table('document_embeddings')\
+                    .select('chunk_id')\
+                    .eq('document_id', doc_id)\
+                    .execute()
+                
+                chunk_count = len(chunks_result.data) if chunks_result.data else 0
+                chunk_counts[doc_id] = chunk_count
+                logger.info(f"📊 CHUNKS: Document {matched_documents[doc_id]['document_name']} has {chunk_count} chunks")
+            
+            # Phase 1 completion summary
+            total_chunks_to_update = sum(chunk_counts.values())
+            logger.info("✅ PHASE 1 COMPLETE: Document discovery and UUID generation")
+            logger.info(f"   Documents to process: {len(matched_documents)}")
+            logger.info(f"   Total chunks to update: {total_chunks_to_update}")
+            logger.info(f"   Documents in metadata table: {len([doc_id for doc_id in matched_documents.keys() if doc_id in metadata_documents])}")
+            
+            return {
+                'success': True,
+                'phase': 1,
+                'documents_discovered': len(matched_documents),
+                'total_chunks_to_update': total_chunks_to_update,
+                'uuid_mapping': uuid_mapping,
+                'matched_documents': matched_documents,
+                'metadata_documents': metadata_documents,
+                'chunk_counts': chunk_counts,
+                'message': f'Phase 1 complete: Discovered {len(matched_documents)} documents with {total_chunks_to_update} total chunks'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ UUID REGENERATION Phase 1 failed: {str(e)}")
+            return {
+                'success': False,
+                'phase': 1,
+                'error': str(e),
+                'message': f'Phase 1 failed: {str(e)}'
             }

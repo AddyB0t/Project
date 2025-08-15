@@ -17,6 +17,21 @@ CREATE TABLE IF NOT EXISTS document_embeddings (
 );
 
 
+-- Table 2: Documents metadata table (CRITICAL - was missing!)
+CREATE TABLE IF NOT EXISTS documents_metadata (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    document_id VARCHAR(255) UNIQUE NOT NULL,
+    original_filename VARCHAR(500) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size BIGINT DEFAULT 0,
+    total_chunks INTEGER DEFAULT 0,
+    total_characters BIGINT DEFAULT 0,
+    processing_status VARCHAR(50) DEFAULT 'pending',
+    upload_timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Table 3: Similarity searches analytics table
 CREATE TABLE IF NOT EXISTS similarity_searches (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -33,6 +48,12 @@ CREATE INDEX IF NOT EXISTS idx_document_embeddings_document_name ON document_emb
 CREATE INDEX IF NOT EXISTS idx_document_embeddings_chunk_id ON document_embeddings(chunk_id);
 CREATE INDEX IF NOT EXISTS idx_document_embeddings_embedding ON document_embeddings 
     USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+-- Indexes for documents_metadata table
+CREATE INDEX IF NOT EXISTS idx_documents_metadata_document_id ON documents_metadata(document_id);
+CREATE INDEX IF NOT EXISTS idx_documents_metadata_filename ON documents_metadata(original_filename);
+CREATE INDEX IF NOT EXISTS idx_documents_metadata_file_type ON documents_metadata(file_type);
+CREATE INDEX IF NOT EXISTS idx_documents_metadata_status ON documents_metadata(processing_status);
 
 
 CREATE INDEX IF NOT EXISTS idx_similarity_searches_timestamp ON similarity_searches(search_timestamp);

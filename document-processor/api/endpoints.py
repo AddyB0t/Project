@@ -1291,6 +1291,300 @@ async def get_available_documents():
         logger.error(f"Error getting available documents: {str(e)}")
         return {"success": False, "error": str(e), "documents": []}
 
+@router.get("/documents/{document_id}/validate")
+async def validate_document(document_id: str):
+    """Validate that a document exists and has embeddings available"""
+    try:
+        logger.info(f"🔍 Validating document: {document_id}")
+        
+        embedding_service = EmbeddingService()
+        validation_result = embedding_service.validate_document_exists(document_id)
+        
+        # Add HTTP status information
+        if validation_result['exists'] and validation_result['has_embeddings']:
+            status_message = "Document is ready for use"
+            http_status = 200
+        elif validation_result['exists']:
+            status_message = "Document exists but may have incomplete processing"
+            http_status = 202  # Accepted but processing incomplete
+        else:
+            status_message = "Document not found"
+            http_status = 404
+        
+        response_data = {
+            "success": True,
+            "document_id": document_id,
+            "status": status_message,
+            "validation": validation_result
+        }
+        
+        logger.info(f"✅ Document validation completed for {document_id}: {status_message}")
+        return JSONResponse(content=response_data, status_code=http_status)
+        
+    except Exception as e:
+        logger.error(f"❌ Error validating document {document_id}: {str(e)}")
+        return JSONResponse(
+            content={
+                "success": False,
+                "document_id": document_id,
+                "error": str(e),
+                "validation": {
+                    'exists': False,
+                    'has_embeddings': False,
+                    'errors': [str(e)]
+                }
+            },
+            status_code=500
+        )
+
+@router.post("/documents/sync-metadata")
+async def sync_existing_documents():
+    """Sync existing documents from embeddings table to metadata table"""
+    try:
+        logger.info("🔄 Starting document metadata sync...")
+        
+        embedding_service = EmbeddingService()
+        synced_count = embedding_service.sync_existing_documents_to_metadata()
+        
+        message = f"Successfully synced {synced_count} documents to metadata table"
+        logger.info(f"✅ {message}")
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": message,
+            "synced_count": synced_count
+        }, status_code=200)
+        
+    except Exception as e:
+        error_msg = f"Error syncing document metadata: {str(e)}"
+        logger.error(f"❌ {error_msg}")
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": error_msg,
+                "synced_count": 0
+            },
+            status_code=500
+        )
+
+@router.post("/documents/assign-random-uuids")
+async def assign_random_uuids_to_documents():
+    """Directly assign random UUIDs to the specified documents in both Supabase tables"""
+    try:
+        logger.info("🎲 API: Starting direct UUID assignment...")
+        
+        embedding_service = EmbeddingService()
+        result = await embedding_service.assign_random_uuids_directly()
+        
+        if result['success']:
+            logger.info(f"✅ API: UUID assignment completed successfully")
+            return JSONResponse(content={
+                "success": True,
+                "message": result['message'],
+                "documents_processed": result['documents_processed'],
+                "successful_documents": result['successful_documents'],
+                "failed_documents": result['failed_documents'],
+                "total_embeddings_updated": result['total_embeddings_updated'],
+                "total_metadata_updated": result['total_metadata_updated'],
+                "results": result['results'],
+                "successful_docs": result['successful_docs'],
+                "failed_docs": result['failed_docs']
+            }, status_code=200)
+        else:
+            logger.error(f"❌ API: UUID assignment failed")
+            return JSONResponse(content={
+                "success": False,
+                "message": result['message'],
+                "error": result.get('error', 'Unknown error'),
+                "documents_processed": result.get('documents_processed', 0)
+            }, status_code=500)
+        
+    except Exception as e:
+        error_msg = f"Error in UUID assignment API: {str(e)}"
+        logger.error(f"❌ API: {error_msg}")
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": error_msg,
+                "message": "UUID assignment API failed"
+            },
+            status_code=500
+        )
+
+@router.get("/documents/metadata-status")
+async def check_metadata_table_status():
+    """Check the status of the documents_metadata table"""
+    try:
+        logger.info("🔧 Checking metadata table status...")
+        
+        embedding_service = EmbeddingService()
+        table_exists = embedding_service.ensure_metadata_table_exists()
+        
+        status_info = {
+            "table_accessible": table_exists,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        if table_exists:
+            # Get additional info about the table
+            try:
+                # Count records in metadata table
+                metadata_count_result = embedding_service.supabase.table('documents_metadata')\
+                    .select('document_id', count='exact')\
+                    .execute()
+                metadata_count = metadata_count_result.count if hasattr(metadata_count_result, 'count') else len(metadata_count_result.data or [])
+                
+                # Count records in embeddings table
+                embeddings_count_result = embedding_service.supabase.table('document_embeddings')\
+                    .select('document_id', count='exact')\
+                    .execute()
+                embeddings_count = embeddings_count_result.count if hasattr(embeddings_count_result, 'count') else len(embeddings_count_result.data or [])
+                
+                status_info.update({
+                    "metadata_records": metadata_count,
+                    "embeddings_records": embeddings_count,
+                    "sync_needed": metadata_count == 0 and embeddings_count > 0
+                })
+                
+            except Exception as count_error:
+                logger.error(f"Error getting table counts: {str(count_error)}")
+                status_info["count_error"] = str(count_error)
+        
+        return JSONResponse(content={
+            "success": True,
+            "status": status_info
+        }, status_code=200)
+        
+    except Exception as e:
+        error_msg = f"Error checking metadata table status: {str(e)}"
+        logger.error(f"❌ {error_msg}")
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": error_msg
+            },
+            status_code=500
+        )
+
+@router.get("/documents/sync-test")
+async def test_document_sync_functionality():
+    """Comprehensive test of document sync functionality"""
+    try:
+        logger.info("🧪 SYNC TEST: Starting comprehensive document sync test...")
+        
+        embedding_service = EmbeddingService()
+        
+        test_results = {
+            "timestamp": datetime.now().isoformat(),
+            "tests": {},
+            "summary": {
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+        }
+        
+        # Test 1: Check metadata table accessibility
+        logger.info("🧪 TEST 1: Checking metadata table accessibility...")
+        try:
+            table_accessible = embedding_service.ensure_metadata_table_exists()
+            test_results["tests"]["metadata_table_accessible"] = {
+                "status": "PASS" if table_accessible else "FAIL",
+                "details": "Metadata table is accessible" if table_accessible else "Metadata table not accessible"
+            }
+            if table_accessible:
+                test_results["summary"]["passed"] += 1
+            else:
+                test_results["summary"]["failed"] += 1
+        except Exception as test1_error:
+            test_results["tests"]["metadata_table_accessible"] = {
+                "status": "FAIL",
+                "details": f"Error: {str(test1_error)}"
+            }
+            test_results["summary"]["failed"] += 1
+        test_results["summary"]["total"] += 1
+        
+        # Test 2: Check document availability
+        logger.info("🧪 TEST 2: Checking document availability...")
+        try:
+            available_docs = embedding_service.get_available_document_names()
+            test_results["tests"]["document_availability"] = {
+                "status": "PASS" if available_docs else "FAIL",
+                "details": f"Found {len(available_docs)} documents",
+                "documents": [doc.get('name', 'Unknown') for doc in available_docs[:5]]  # First 5 for brevity
+            }
+            if available_docs:
+                test_results["summary"]["passed"] += 1
+            else:
+                test_results["summary"]["failed"] += 1
+        except Exception as test2_error:
+            test_results["tests"]["document_availability"] = {
+                "status": "FAIL",
+                "details": f"Error: {str(test2_error)}"
+            }
+            test_results["summary"]["failed"] += 1
+        test_results["summary"]["total"] += 1
+        
+        # Test 3: Test manual sync capability
+        logger.info("🧪 TEST 3: Testing manual sync capability...")
+        try:
+            sync_count = embedding_service.sync_existing_documents_to_metadata()
+            test_results["tests"]["manual_sync"] = {
+                "status": "PASS",
+                "details": f"Successfully synced {sync_count} documents",
+                "synced_count": sync_count
+            }
+            test_results["summary"]["passed"] += 1
+        except Exception as test3_error:
+            test_results["tests"]["manual_sync"] = {
+                "status": "FAIL",
+                "details": f"Sync failed: {str(test3_error)}"
+            }
+            test_results["summary"]["failed"] += 1
+        test_results["summary"]["total"] += 1
+        
+        # Test 4: Re-check document availability after sync
+        logger.info("🧪 TEST 4: Re-checking document availability after sync...")
+        try:
+            post_sync_docs = embedding_service.get_available_document_names()
+            test_results["tests"]["post_sync_availability"] = {
+                "status": "PASS" if post_sync_docs else "FAIL",
+                "details": f"Found {len(post_sync_docs)} documents after sync",
+                "documents": [doc.get('name', 'Unknown') for doc in post_sync_docs[:5]]
+            }
+            if post_sync_docs:
+                test_results["summary"]["passed"] += 1
+            else:
+                test_results["summary"]["failed"] += 1
+        except Exception as test4_error:
+            test_results["tests"]["post_sync_availability"] = {
+                "status": "FAIL",
+                "details": f"Error: {str(test4_error)}"
+            }
+            test_results["summary"]["failed"] += 1
+        test_results["summary"]["total"] += 1
+        
+        # Overall test result
+        test_results["overall_status"] = "PASS" if test_results["summary"]["failed"] == 0 else "FAIL"
+        
+        logger.info(f"🧪 SYNC TEST COMPLETE: {test_results['summary']['passed']}/{test_results['summary']['total']} tests passed")
+        
+        return JSONResponse(content={
+            "success": True,
+            "test_results": test_results
+        }, status_code=200)
+        
+    except Exception as e:
+        error_msg = f"Error during sync test: {str(e)}"
+        logger.error(f"❌ {error_msg}")
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": error_msg
+            },
+            status_code=500
+        )
+
 @router.get("/documents/for-selection")
 async def get_documents_for_selection(db: Session = Depends(get_db)):
     try:
@@ -1514,7 +1808,7 @@ No relevant context found in the selected documents above the similarity thresho
 async def search_chat_context(
     query: str = Form(...),
     max_chunks: int = Form(8),
-    similarity_threshold: float = Form(0.3),
+    similarity_threshold: float = Form(0.2),
     document_name: str = Form(None)
 ):
     try:
@@ -1815,8 +2109,8 @@ def analyze_construction_content(text: str) -> dict:
 async def ask_llm_with_documents(
     user_message: str = Form(...),
     document_ids: Optional[str] = Form(None),
-    max_context_chunks: int = Form(8),
-    similarity_threshold: float = Form(0.3),
+    max_context_chunks: int = Form(10),
+    similarity_threshold: float = Form(0.2),
     max_tokens: int = Form(1000),
     temperature: float = Form(0.3)
 ):
@@ -1861,8 +2155,52 @@ async def ask_llm_with_documents(
         
         selected_document_ids = []
         if document_ids and document_ids.strip():
-            selected_document_ids = [doc_id.strip() for doc_id in document_ids.split(',') if doc_id.strip()]
-            logger.info(f"🎯 Document filtering enabled - searching in: {selected_document_ids}")
+            raw_ids = [doc_id.strip() for doc_id in document_ids.split(',') if doc_id.strip()]
+            
+            # Use UUID validation utility
+            from utils.uuid_validator import UuidValidator
+            valid_ids, invalid_ids = UuidValidator.validate_and_log_document_ids(raw_ids, logger)
+            
+            selected_document_ids = valid_ids
+            
+            if valid_ids:
+                logger.info(f"🎯 Document filtering enabled - searching in {len(valid_ids)} valid documents")
+            else:
+                logger.warning(f"⚠️ No valid document IDs provided, searching all documents")
+            
+            # COMPREHENSIVE DEBUG: Show what we received vs what's available
+            logger.info(f"📋 DOCUMENT ID DEBUG:")
+            logger.info(f"   Raw document_ids parameter: '{document_ids}'")
+            logger.info(f"   Parsed document IDs: {raw_ids}")
+            logger.info(f"   Valid document IDs: {valid_ids}")
+            logger.info(f"   Invalid document IDs: {invalid_ids}")
+            for i, doc_id in enumerate(valid_ids):
+                logger.info(f"   Valid Document {i}: '{doc_id}' (length: {len(doc_id)}, type: {type(doc_id)})")
+            
+            # Show what documents are available in the system
+            try:
+                embedding_service = get_embedding_service()
+                if embedding_service:
+                    available_docs = embedding_service.get_available_document_names()
+                    logger.info(f"📁 Available documents in system ({len(available_docs)}):")
+                    for i, doc in enumerate(available_docs):
+                        logger.info(f"   Available {i}: id='{doc.get('id')}', name='{doc.get('name')}'")
+                    
+                    # Check for exact matches
+                    target_doc_id = selected_document_ids[0] if selected_document_ids else None
+                    if target_doc_id:
+                        matches = [doc for doc in available_docs if doc.get('id') == target_doc_id]
+                        logger.info(f"🔍 Exact ID matches for '{target_doc_id}': {len(matches)}")
+                        if matches:
+                            logger.info(f"✅ MATCH FOUND: {matches[0]}")
+                        else:
+                            logger.warning(f"❌ NO EXACT MATCH for document ID: '{target_doc_id}'")
+                            # Show close matches for debugging
+                            close_matches = [doc for doc in available_docs if target_doc_id.lower() in doc.get('id', '').lower()]
+                            logger.info(f"🔍 Close matches (case-insensitive): {close_matches}")
+                            
+            except Exception as debug_error:
+                logger.error(f"❌ Error during document debugging: {str(debug_error)}")
         else:
             logger.info("🌐 Document filtering disabled - searching all available documents")
         
@@ -1876,9 +2214,36 @@ async def ask_llm_with_documents(
             search_response = None
             original_threshold = similarity_threshold
             
-            try:
-                selected_document_id = selected_document_ids[0] if selected_document_ids else None
+            # Validate and resolve document ID if provided
+            selected_document_id = None
+            if selected_document_ids:
+                selected_document_id = selected_document_ids[0]
+                logger.info(f"🎯 Document filtering enabled - target document_id: '{selected_document_id}'")
                 
+                # Validate that the document exists and has embeddings
+                try:
+                    embedding_service = get_embedding_service()
+                    if embedding_service:
+                        # Check if document exists in embeddings
+                        check_result = embedding_service.supabase.table('document_embeddings')\
+                            .select('document_id')\
+                            .eq('document_id', selected_document_id)\
+                            .limit(1)\
+                            .execute()
+                        
+                        if not check_result.data:
+                            logger.warning(f"⚠️ Document ID '{selected_document_id}' not found in embeddings - proceeding with all documents")
+                            selected_document_id = None
+                        else:
+                            logger.info(f"✅ Document ID '{selected_document_id}' validated and found")
+                            
+                except Exception as validation_error:
+                    logger.warning(f"⚠️ Document validation failed: {str(validation_error)} - proceeding with all documents")
+                    selected_document_id = None
+            else:
+                logger.info("🌐 Document filtering disabled - searching all available documents")
+            
+            try:
                 search_response = chatbot_service.search_relevant_context(
                     query=user_message,
                     max_chunks=max_context_chunks,
@@ -2344,8 +2709,8 @@ async def ask_llm_multimodal(
     user_message: str = Form(...),
     document_ids: Optional[str] = Form(None),
     include_images: bool = Form(True),
-    max_context_chunks: int = Form(8),
-    similarity_threshold: float = Form(0.3),
+    max_context_chunks: int = Form(10),
+    similarity_threshold: float = Form(0.2),
     max_tokens: int = Form(1000),
     temperature: float = Form(0.3)
 ):
