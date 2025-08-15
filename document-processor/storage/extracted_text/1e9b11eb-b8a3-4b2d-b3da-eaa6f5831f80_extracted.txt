@@ -1,0 +1,10 @@
+Original filename: test_ocr_image.png
+Document ID: 1e9b11eb-b8a3-4b2d-b3da-eaa6f5831f80
+File type: png
+==================================================
+EXTRACTED TEXT:
+==================================================
+Hello World\!
+This isa test image
+for OCR procéssing:
+

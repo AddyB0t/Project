@@ -1,0 +1,95 @@
+Proposed Prefab Lecture Rooms at KCA University Main 
+Campus, Ruaraka
+DATE
+NOTES
+ELEVATIONS
+DRAWING
+PROJECT
+GENERAL
+1. All dimensions to be checked on site before commencement of any work. Any 
+discrepancies should be reported  before commencement of works. 
+2. Use figured dimensions only. All dimensions are in millimeters unless otherwise specified.
+3. All sanitary fittings, doors, windows and lifts to schedules. All internal fittings to be 
+approved
+4. p.v. denotes permanent ventilation. Permanent ventilation to be provided on all doors 
+and windows except WC doors
+5. All walls less than 200mm thick to be reinforced every alternate course with hoop iron
+CIVIL & STRUCTURAL WORKS
+1. Refer to structural engineer’s details for all RC works
+2. Foundation depth to be determined on site to architect’s and 
+structural engineer’s approval
+MECHANICAL WORKS
+1. All plumbing and drainage to comply with council requirements.
+2. All internal fittings to be approved by architect 
+3. Plumbing and drainage to mechanical engineer’s details
+4. All soil and water pipes under paved areas, floors, drives and walls 
+to be encased in 150mm concrete surround
+SCALE
+12/03/2025
+1:100
+A.05
+PAGE
+A
+B
+D
+D
+E
+G
+G
+K
+BB'
+C C'
+E
+F
+H H'
+J J'
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.050
+0.351
+2.649
+0.650
+2.400
+1.000
+1.100
+2.301
+3.300
+2.300
+1.100
+1.000
+2.401
+0.649
+2.650
+0.350
+3.050
+11
+8
+7
+4
+1
+10
+9
+6
+5
+3
+2
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.050
+3.000
+3.050
+2.100
+3.400
+3.300
+3.401
+3.401
+3.300
+3.400
+South Elevation
+1:100
+West Elevation
+1:100

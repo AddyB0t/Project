@@ -1,0 +1,21 @@
+{
+  "document_id": "e23996e3-ec54-49c2-91bf-a8b241aeb433",
+  "original_filename": "Civil Drawing.pdf",
+  "file_type": "pdf",
+  "total_pages": 4,
+  "page_images": [
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/pages/page_1.png",
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/pages/page_2.png",
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/pages/page_3.png",
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/pages/page_4.png"
+  ],
+  "page_texts": [
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/text/page_1.txt",
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/text/page_2.txt",
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/text/page_3.txt",
+    "storage/document_packages/e23996e3-ec54-49c2-91bf-a8b241aeb433/text/page_4.txt"
+  ],
+  "processing_timestamp": "2025-07-29T15:51:55.634124",
+  "processing_time": 3.4730000495910645,
+  "file_size": 193591
+}

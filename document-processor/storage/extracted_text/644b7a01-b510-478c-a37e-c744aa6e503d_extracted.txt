@@ -1,0 +1,1001 @@
+Original filename: 01 KCAU Prefab Lecture Rooms - Outline Proposal 12032025.pdf
+Document ID: 644b7a01-b510-478c-a37e-c744aa6e503d
+File type: pdf
+==================================================
+EXTRACTED TEXT:
+==================================================
+Proposed Prefab Lecture Rooms at KCA University Main 
+Campus, Ruaraka
+DATE
+NOTES
+PLANS
+DRAWING
+PROJECT
+GENERAL
+1. All dimensions to be checked on site before commencement of any work. Any 
+discrepancies should be reported  before commencement of works. 
+2. Use figured dimensions only. All dimensions are in millimeters unless otherwise specified.
+3. All sanitary fittings, doors, windows and lifts to schedules. All internal fittings to be 
+approved
+4. p.v. denotes permanent ventilation. Permanent ventilation to be provided on all doors 
+and windows except WC doors
+5. All walls less than 200mm thick to be reinforced every alternate course with hoop iron
+CIVIL & STRUCTURAL WORKS
+1. Refer to structural engineer’s details for all RC works
+2. Foundation depth to be determined on site to architect’s and 
+structural engineer’s approval
+MECHANICAL WORKS
+1. All plumbing and drainage to comply with council requirements.
+2. All internal fittings to be approved by architect 
+3. Plumbing and drainage to mechanical engineer’s details
+4. All soil and water pipes under paved areas, floors, drives and walls 
+to be encased in 150mm concrete surround
+SCALE
+12/03/2025
+1:200
+A.01
+PAGE
+A
+A
+D
+G
+K
+K
+11
+11
+8
+8
+7
+7
+4
+4
+1
+1
+B
+D
+E
+G
+2
+2
+3
+3
+5
+5
+6
+6
+9
+9
+10
+10
+B'
+C'
+J
+H
+F
+E
+B
+C
+H'
+J'
+ West Elevation
+ South Elevation
+ East Elevation
+ North Elevation
+0.100
+10.000
+0.100
+10.000
+0.100
+10.000
+0.100
+0.100
+10.000
+0.100
+10.000
+2.000
+0.100
+9.000
+0.100
+0.100
+2.000
+0.100
+7.800
+0.100
+2.000
+0.100
+0.100
+9.000
+0.100
+9.000
+0.100
+2.001
+2.100
+0.900
+2.100
+0.900
+2.100
+1.050
+2.000
+9.200
+1.050
+2.100
+0.900
+2.100
+0.900
+2.100
+1.050
+2.100
+0.900
+2.100
+1.550
+1.800
+1.651
+2.100
+0.900
+2.100
+1.550
+1.800
+0.650
+2.000
+2.100
+0.900
+2.100
+0.900
+2.100
+2.000
+2.100
+0.900
+2.100
+0.900
+2.100
+1.050
+1.050
+2.100
+0.900
+2.100
+0.900
+2.100
+1.300
+1.800
+1.550
+2.100
+0.900
+2.100
+1.650
+1.800
+1.550
+2.100
+0.900
+2.100
+1.000
+1.000
+2.100
+0.900
+2.100
+1.550
+1.800
+3.400
+3.300
+3.401
+3.401
+3.300
+3.400
+3.050
+3.000
+3.050
+2.100
+3.950
+2.100
+3.050
+3.000
+3.050
+3.950
+3.401
+3.300
+3.400
+0.700
+1.800
+1.550
+2.100
+0.900
+2.100
+1.050
+0.100
+10.000
+2.000
+0.100
+9.000
+0.100
+0.100
+10.000
+0.100
+11.150
+0.900
+2.100
+0.900
+2.100
+1.050
+2.000
+9.200
+2.100
+3.050
+3.000
+7.900
+2.100
+3.050
+3.000
+3.050
+3.050
+2.100
+9.200
+7.800
+2.100
+9.200
+2.100
+3.050
+3.000
+7.900
+2.100
+3.050
+3.000
+3.050
+3.050
+2.100
+0.100
+9.000
+0.100
+2.100
+2.250
+3.300
+2.250
+2.100
+0.100
+9.000
+0.100
+3.400
+3.300
+3.401
+3.401
+3.300
+3.400
+2.100
+3.050
+3.000
+3.050
+31.500
+0.050
+3.400
+3.300
+3.401
+3.400
+3.300
+3.401
+3.400
+3.300
+3.401
+0.050
+1.200
+0.100
+0.100
+3.800
+0.100
+3.800
+0.100
+0.100
+4.450
+0.100
+4.450
+0.100
+3.800
+0.100
+0.100
+5.100
+0.100
+0.100
+3.300
+0.100
+3.200
+0.100
+3.301
+0.100
+3.300
+0.100
+0.100
+3.200
+0.100
+3.301
+0.100
+1.200
+3.800
+0.100
+0.100
+3.900
+0.100
+0.100
+1.000
+0.100
+2.201
+0.100
+3.000
+6.051
+2.300
+3.400
+6.050
+ROOM 1
+ROOM 2
+ROOM 3
+ROOM 4
+ROOM 5
+ROOM 6
+PAVING
+600X600 precast concrete paving slabs
+on 100mm thick blinding layer
+on consolidated earth
+PASSAGE
+PASSAGE
+PASSAGE
+PASSAGE
+PASSAGE
+PASSAGE
+SLAB
+150mm thick concrete floor bed
+with BRC weldmesh anti-crack agent
+on heavy gauge polythene damp proof membrane
+on 50mm thick blinding layer
+on compacted hardcore backfill
+on consolidated earth
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+pv
+SUPERSTRUCTURE
+Structural frame in 50x50mm RHS members
+with external IT5 profile sheet facing in approved color
+with 250mm height masonry below all partitions
+with internal 5-ply plywood facing on light gauge metal studs
+with 50mm thick polyethylene insulation
+SLAB
+150mm thick concrete floor bed
+with BRC weldmesh anti-crack agent
+on heavy gauge polythene damp proof membrane
+on 50mm thick blinding layer
+on compacted hardcore backfill
+on consolidated earth
+SLAB
+150mm thick concrete floor bed
+with BRC weldmesh anti-crack agent
+on heavy gauge polythene damp proof membrane
+on 50mm thick blinding layer
+on compacted hardcore backfill
+on consolidated earth
+SUPERSTRUCTURE
+Structural frame in 50x50mm RHS members
+with external IT5 profile sheet facing in approved color
+with 250mm height masonry below all partitions
+with internal 5-ply plywood facing on light gauge metal studs
+with 50mm thick polyethylene insulation
+OFFICE 1
+OFFICE 2
+OFFICE 3
+OFFICE 4
+OPEN 
+OFFICE
+RECEPTION & 
+WAITING
+GREEN 
+SPACE
+GREEN 
+SPACE
+SPP OFFICES
+S-01
+S-01
+S-02
+S-02
+A
+A
+D
+G
+K
+K
+11
+11
+8
+8
+7
+7
+4
+4
+1
+1
+B
+D
+E
+G
+2
+2
+3
+3
+5
+5
+6
+6
+9
+9
+10
+10
+B'
+C'
+J
+H
+F
+E
+B
+C
+H'
+J'
+9.250
+0.600
+0.600
+8.000
+0.600
+2.000
+0.600
+9.250
+0.600
+0.600
+9.250
+0.600
+9.500
+0.600
+9.250
+0.600
+0.600
+8.000
+0.600
+1.500
+0.600
+7.800
+0.600
+1.500
+0.600
+8.000
+0.600
+0.600
+8.000
+0.600
+1.500
+0.600
+0.600
+9.250
+0.600
+9.250
+0.600
+2.000
+0.600
+8.000
+0.600
+0.600
+9.250
+9.700
+0.600
+0.600
+1.550
+0.600
+8.000
+0.600
+30.400
+31.500
+FOUNDATION
+150mm thick slab thickening 
+beneath all partitions
+on 50mm blinding
+on 300mm approved 
+hardcore backfill
+FOUNDATION
+150mm thick slab thickening 
+beneath all partitions
+on 50mm blinding
+on 300mm approved 
+hardcore backfill
+FOUNDATION
+150mm thick slab thickening 
+beneath all partitions
+on 50mm blinding
+on 300mm approved 
+hardcore backfill
+ West Elevation
+ South Elevation
+ East Elevation
+ North Elevation
+S-01
+S-01
+S-02
+S-02
+0.
+Ground Floor
+1:200
+-1.
+Substructure
+1:200
+
+
+Proposed Prefab Lecture Rooms at KCA University Main 
+Campus, Ruaraka
+DATE
+NOTES
+ROOF PLAN & PERSPECTIVES
+DRAWING
+PROJECT
+GENERAL
+1. All dimensions to be checked on site before commencement of any work. Any 
+discrepancies should be reported  before commencement of works. 
+2. Use figured dimensions only. All dimensions are in millimeters unless otherwise specified.
+3. All sanitary fittings, doors, windows and lifts to schedules. All internal fittings to be 
+approved
+4. p.v. denotes permanent ventilation. Permanent ventilation to be provided on all doors 
+and windows except WC doors
+5. All walls less than 200mm thick to be reinforced every alternate course with hoop iron
+CIVIL & STRUCTURAL WORKS
+1. Refer to structural engineer’s details for all RC works
+2. Foundation depth to be determined on site to architect’s and 
+structural engineer’s approval
+MECHANICAL WORKS
+1. All plumbing and drainage to comply with council requirements.
+2. All internal fittings to be approved by architect 
+3. Plumbing and drainage to mechanical engineer’s details
+4. All soil and water pipes under paved areas, floors, drives and walls 
+to be encased in 150mm concrete surround
+SCALE
+12/03/2025
+1:200, 1:250
+A.02
+PAGE
+A
+A
+D
+G
+K
+K
+11
+11
+8
+8
+7
+7
+4
+4
+1
+1
+B
+D
+E
+G
+2
+2
+3
+3
+5
+5
+6
+6
+9
+9
+10
+10
+B'
+C'
+J
+H
+F
+E
+B
+C
+H'
+J'
+ West Elevation
+ South Elevation
+ East Elevation
+ North Elevation
+S-01
+S-01
+S-02
+S-02
+0.600
+0.600
+30.400
+0.600
+0.600
+31.500
+0.600
+0.600
+31.500
+6.250
+6.250
+6.250
+6.250
+6.600
+0.600
+19.600
+6.250
+6.250
+0.600
+5.650
+5.650
+0.600
+19.600
+0.600
+0.600
+5.650
+5.650
+0.600
+0.600
+5.650
+5.650
+0.600
+6.600
+ROOFING
+IT5 profile sheet sheeting in approved color
+on structural trusses in 50x50mm RHS members
+with 5mm thick polyethylene sisalation
+CEILING
+Softboard sheets on 
+timber brandering
+CEILING
+Softboard sheets on 
+timber brandering
+ROOFING
+IT5 profile sheet sheeting in approved color
+on structural trusses in 50x50mm RHS members
+with 5mm thick polyethylene sisalation
+roof gable
+roof gable
+roof gable
+roof gable
+1.
+Roof Level
+1:200
+
+
+Proposed Prefab Lecture Rooms at KCA University Main 
+Campus, Ruaraka
+DATE
+NOTES
+SECTIONS
+DRAWING
+PROJECT
+GENERAL
+1. All dimensions to be checked on site before commencement of any work. Any 
+discrepancies should be reported  before commencement of works. 
+2. Use figured dimensions only. All dimensions are in millimeters unless otherwise specified.
+3. All sanitary fittings, doors, windows and lifts to schedules. All internal fittings to be 
+approved
+4. p.v. denotes permanent ventilation. Permanent ventilation to be provided on all doors 
+and windows except WC doors
+5. All walls less than 200mm thick to be reinforced every alternate course with hoop iron
+CIVIL & STRUCTURAL WORKS
+1. Refer to structural engineer’s details for all RC works
+2. Foundation depth to be determined on site to architect’s and 
+structural engineer’s approval
+MECHANICAL WORKS
+1. All plumbing and drainage to comply with council requirements.
+2. All internal fittings to be approved by architect 
+3. Plumbing and drainage to mechanical engineer’s details
+4. All soil and water pipes under paved areas, floors, drives and walls 
+to be encased in 150mm concrete surround
+SCALE
+12/03/2025
+1:100
+A.03
+PAGE
+A
+B
+D
+D
+E
+G
+G
+K
+BB'
+C C'
+E
+F
+H H'
+J J'
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.050
+0.351
+2.649
+0.650
+2.400
+1.000
+1.100
+2.301
+3.300
+2.300
+1.100
+1.000
+2.401
+0.649
+2.650
+0.350
+3.050
+0.150
+2.400
+0.600
+3.000
+0.600
+0.900
+1.500
+3.000
+23°
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.400
+3.300
+3.401
+3.401
+3.300
+3.400
+2.100
+3.050
+3.000
+3.050
+0.150
+0.900
+1.500
+0.600
+3.000
+0.900
+1.500
+0.600
+0.900
+0.600
+1.500
+3.000
+22.5°
+S-01
+Building Section
+1:100
+S-02
+Building Section
+1:100
+
+
+Proposed Prefab Lecture Rooms at KCA University Main 
+Campus, Ruaraka
+DATE
+NOTES
+ELEVATIONS
+DRAWING
+PROJECT
+GENERAL
+1. All dimensions to be checked on site before commencement of any work. Any 
+discrepancies should be reported  before commencement of works. 
+2. Use figured dimensions only. All dimensions are in millimeters unless otherwise specified.
+3. All sanitary fittings, doors, windows and lifts to schedules. All internal fittings to be 
+approved
+4. p.v. denotes permanent ventilation. Permanent ventilation to be provided on all doors 
+and windows except WC doors
+5. All walls less than 200mm thick to be reinforced every alternate course with hoop iron
+CIVIL & STRUCTURAL WORKS
+1. Refer to structural engineer’s details for all RC works
+2. Foundation depth to be determined on site to architect’s and 
+structural engineer’s approval
+MECHANICAL WORKS
+1. All plumbing and drainage to comply with council requirements.
+2. All internal fittings to be approved by architect 
+3. Plumbing and drainage to mechanical engineer’s details
+4. All soil and water pipes under paved areas, floors, drives and walls 
+to be encased in 150mm concrete surround
+SCALE
+12/03/2025
+1:100
+A.04
+PAGE
+1
+4
+7
+8
+11
+2
+3
+5
+6
+9
+10
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.400
+3.300
+3.401
+3.401
+3.300
+3.400
+2.100
+3.050
+3.000
+3.050
+K
+G
+G
+E
+D
+D
+B
+A
+J' J
+H' H
+F
+E
+C' C
+B'B
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.050
+0.350
+2.650
+0.649
+2.401
+1.000
+1.100
+2.300
+3.300
+2.301
+1.100
+1.000
+2.400
+0.650
+2.649
+0.351
+3.050
+East Elevation
+1:100
+North Elevation
+1:100
+
+
+Proposed Prefab Lecture Rooms at KCA University Main 
+Campus, Ruaraka
+DATE
+NOTES
+ELEVATIONS
+DRAWING
+PROJECT
+GENERAL
+1. All dimensions to be checked on site before commencement of any work. Any 
+discrepancies should be reported  before commencement of works. 
+2. Use figured dimensions only. All dimensions are in millimeters unless otherwise specified.
+3. All sanitary fittings, doors, windows and lifts to schedules. All internal fittings to be 
+approved
+4. p.v. denotes permanent ventilation. Permanent ventilation to be provided on all doors 
+and windows except WC doors
+5. All walls less than 200mm thick to be reinforced every alternate course with hoop iron
+CIVIL & STRUCTURAL WORKS
+1. Refer to structural engineer’s details for all RC works
+2. Foundation depth to be determined on site to architect’s and 
+structural engineer’s approval
+MECHANICAL WORKS
+1. All plumbing and drainage to comply with council requirements.
+2. All internal fittings to be approved by architect 
+3. Plumbing and drainage to mechanical engineer’s details
+4. All soil and water pipes under paved areas, floors, drives and walls 
+to be encased in 150mm concrete surround
+SCALE
+12/03/2025
+1:100
+A.05
+PAGE
+A
+B
+D
+D
+E
+G
+G
+K
+BB'
+C C'
+E
+F
+H H'
+J J'
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.050
+0.351
+2.649
+0.650
+2.400
+1.000
+1.100
+2.301
+3.300
+2.300
+1.100
+1.000
+2.401
+0.649
+2.650
+0.350
+3.050
+11
+8
+7
+4
+1
+10
+9
+6
+5
+3
+2
+±0.000
+0 Ground Floor
++3.000
+1 Roof Level
+3.050
+3.000
+3.050
+2.100
+3.400
+3.300
+3.401
+3.401
+3.300
+3.400
+South Elevation
+1:100
+West Elevation
+1:100

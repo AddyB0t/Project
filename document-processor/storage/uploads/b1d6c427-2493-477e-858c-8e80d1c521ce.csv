@@ -1,0 +1,61 @@
+Entity-Type,Text
+Aadhaar_Card_Number,9876 5432 1098
+E-Mail,susan.reid@aether-ai.com
+E-Mail,david.chen@aether-ai.com
+E-Mail,rohan.gupta@iisc.ac.in
+E-Mail,ade.kunle@nairaflow.ng
+E-Mail,d.chen88@email.com
+LOC,San Francisco
+LOC,San Francisco
+LOC,"456 Algorithmic Way, San Francisco, CA 94107, USA"
+LOC,London
+LOC,London
+LOC,Thames
+LOC,"12 Fleet Street, London, EC4A 2BE, UK"
+LOC,Cambridge
+LOC,India
+LOC,Brussels
+LOC,Bangalore
+LOC,Bangalore
+LOC,Bengaluru
+LOC,"CV Raman Rd, Bengaluru, Karnataka 560012, India"
+LOC,Nigerian
+LOC,Geneva
+LOC,Lagos
+LOC,"15B Adetokunbo Ademola Street, Victoria Island, Lagos, 101241, Nigeria"
+LOC,San Francisco
+ORG,Aether AI
+ORG,The Global Sentinel
+ORG,Aether AI
+ORG,Indian Institute of Science
+ORG,The Global Sentinel
+ORG,IISc Campus
+PER,David Chen
+PER,David
+PER,Susan Reid
+PER,Amelia Davies
+PER,George Wright
+PER,Rohan Gupta
+PER,Rohan Gupta
+PER,Funke Adebayo
+PER,Adekunle
+PER,Funke Adebayo
+PER,Gupta
+PER,Funke
+PER,Gupta
+PER,Rohan
+PER,Funke
+PER,Ibrahim
+PER,David Chen
+PER,Amelia Davies
+PER,Chen
+PER,Gupta
+PER,Funke Adebayo
+PER,Funke
+PER,David
+Phone Number,+44 20 7946 0125
+Phone Number,+91 80 2293 2001
+Phone Number,+234 1 555 0189
+Time,2:17 AM
+URL,www.nairaflow.ng
+Year,2019
