@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  document-processor:
+    build: ..
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - HF_MODEL_NAME=${HF_MODEL_NAME:-sentence-transformers/all-mpnet-base-v2}
+    volumes:
+      - ../storage:/app/storage
+      - ../document_processor.db:/app/document_processor.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  default:
+    driver: bridge

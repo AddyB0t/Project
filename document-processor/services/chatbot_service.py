@@ -300,7 +300,7 @@ Relevance Score: {result.similarity_score:.3f}
             
             # Add the current user query
             prompt_parts.append(f"\nUser Question: {user_query}")
-            prompt_parts.append("\nPlease provide a helpful response based on the available context and your knowledge:")
+            prompt_parts.append("\nPlease provide a helpful response based on the available context and your knowledge. When referencing information from the documents, please mention which document you are citing (e.g., 'According to [document name]...' or 'Based on the [document name] document...'):")
             
             final_prompt = "\n".join(prompt_parts)
             logger.info(f"FINAL PROMPT: {len(final_prompt)} characters total")

@@ -1,0 +1,29 @@
+/mnt/data/Pasia/Cliebt/Project/document-processor/main.py:33: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+INFO:     Will watch for changes in these directories: ['/mnt/data/Pasia/Cliebt/Project/document-processor']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [16097] using WatchFiles
+INFO:     Started server process [16148]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:60192 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50938 - "GET /api/debug/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37796 - "GET /api/documents/available HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39464 - "GET /api/embeddings/stats HTTP/1.1" 200 OK
+OpenRouter API error 401: {"error":{"message":"User not found.","code":401}}
+INFO:     127.0.0.1:36936 - "POST /api/chat/ask-llm HTTP/1.1" 200 OK
+⚠️ No relevant document context found in search results
+OpenRouter API error 401: {"error":{"message":"User not found.","code":401}}
+INFO:     127.0.0.1:36812 - "POST /api/chat/ask-llm HTTP/1.1" 200 OK
+OpenRouter API error 401: {"error":{"message":"User not found.","code":401}}
+INFO:     127.0.0.1:60034 - "POST /api/chat/ask-llm HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16148]
+INFO:     Stopping reloader process [16097]
